@@ -172,10 +172,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/uploads", express.static(__dirname + "/uploads"));
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+// Connect to MongoDB without deprecated options
+mongoose.connect(process.env.MONGO_URI);
 
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
