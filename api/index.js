@@ -151,7 +151,7 @@ module.exports = app;
 
 const express = require("express");
 const cors = require("cors");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 const User = require("./models/User");
 const Post = require("./models/Post");
 const bcrypt = require("bcryptjs");
@@ -161,12 +161,9 @@ const multer = require("multer");
 const uploadMiddleware = multer({ dest: "uploads/" });
 const fs = require("fs");
 const dotenv = require("dotenv");
-const { log } = require("console");
 const path = require("path");
 
 dotenv.config();
-
-const __dirname = path.resolve();
 
 const app = express();
 
@@ -180,12 +177,9 @@ const salt = bcrypt.genSaltSync(10);
 const secret = process.env.JWT_SECRET;
 
 app.use(cors({ credentials: true, origin: process.env.CLIENT_ORIGIN }));
-
 app.use(express.json());
-
 app.use(cookieParser());
-
-app.use("/uploads", express.static(__dirname + "/uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 mongoose.connect(process.env.MONGO_URI);
 
