@@ -162,7 +162,7 @@ const uploadMiddleware = multer({ dest: "uploads/" });
 const fs = require("fs");
 const dotenv = require("dotenv");
 const { log } = require("console");
-import path from "path";
+const path = require("path");
 
 dotenv.config();
 
