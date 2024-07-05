@@ -167,18 +167,23 @@ dotenv.config();
 
 const app = express();
 
-app.use(express.static(path.join(__dirname, "../client/dist")));
+const __dirname = path.resolve();
+
+app.use(express.static(path.join(__dirname, "/client/dist")));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+  res.sendFile(path.join(__dirname, "/client/dist/index.html"));
 });
 
 const salt = bcrypt.genSaltSync(10);
 const secret = process.env.JWT_SECRET;
 
 app.use(cors({ credentials: true, origin: process.env.CLIENT_ORIGIN }));
+
 app.use(express.json());
+
 app.use(cookieParser());
+
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 mongoose.connect(process.env.MONGO_URI);
