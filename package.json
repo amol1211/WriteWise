@@ -6,7 +6,9 @@
     "dev:server": "nodemon api/index.js",
     "dev:client": "npm run dev --prefix client",
     "start": "npm run build && node api/index.js",
-    "build": "npm install && npm install --prefix client && npm run build --prefix client"
+    "build": "npm install && npm run client-install && npm run client-build",
+    "client-install": "npm install --prefix client",
+    "client-build": "npm run build --prefix client"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
