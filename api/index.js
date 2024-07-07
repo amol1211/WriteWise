@@ -169,19 +169,25 @@ const app = express();
 
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-});
+const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
 
-const salt = bcrypt.genSaltSync(10);
-const secret = process.env.JWT_SECRET;
-
-app.use(cors({ credentials: true, origin: process.env.CLIENT_ORIGIN }));
+app.use(
+  cors({
+    credentials: true,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+  })
+);
 
 app.use(express.json());
-
 app.use(cookieParser());
-
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 mongoose.connect(process.env.MONGO_URI);
@@ -191,7 +197,7 @@ app.post("/register", async (req, res) => {
   try {
     const userDoc = await User.create({
       username,
-      password: bcrypt.hashSync(password, salt),
+      password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
     });
     res.json(userDoc);
   } catch (e) {
@@ -204,13 +210,15 @@ app.post("/login", async (req, res) => {
   const userDoc = await User.findOne({ username });
   const passOk = bcrypt.compareSync(password, userDoc.password);
   if (passOk) {
-    jwt.sign({ username, id: userDoc._id }, secret, {}, (err, token) => {
-      if (err) throw err;
-      res.cookie("token", token).json({
-        id: userDoc._id,
-        username,
-      });
-    });
+    jwt.sign(
+      { username, id: userDoc._id },
+      process.env.JWT_SECRET,
+      {},
+      (err, token) => {
+        if (err) throw err;
+        res.cookie("token", token).json({ id: userDoc._id, username });
+      }
+    );
   } else {
     res.status(400).json("incorrect credentials");
   }
@@ -218,7 +226,7 @@ app.post("/login", async (req, res) => {
 
 app.get("/profile", (req, res) => {
   const { token } = req.cookies;
-  jwt.verify(token, secret, {}, (err, info) => {
+  jwt.verify(token, process.env.JWT_SECRET, {}, (err, info) => {
     if (err) throw err;
     res.json(info);
   });
@@ -236,7 +244,7 @@ app.post("/post", uploadMiddleware.single("file"), async (req, res) => {
   fs.renameSync(path, newPath);
 
   const { token } = req.cookies;
-  jwt.verify(token, secret, {}, async (err, info) => {
+  jwt.verify(token, process.env.JWT_SECRET, {}, async (err, info) => {
     if (err) throw err;
     const { title, summary, content } = req.body;
     const postDoc = await Post.create({
@@ -261,7 +269,7 @@ app.put("/post", uploadMiddleware.single("file"), async (req, res) => {
   }
 
   const { token } = req.cookies;
-  jwt.verify(token, secret, {}, async (err, info) => {
+  jwt.verify(token, process.env.JWT_SECRET, {}, async (err, info) => {
     if (err) throw err;
 
     const { id, title, summary, content } = req.body;
@@ -283,18 +291,31 @@ app.put("/post", uploadMiddleware.single("file"), async (req, res) => {
 });
 
 app.get("/post", async (req, res) => {
-  res.json(
-    await Post.find()
+  try {
+    const posts = await Post.find()
       .populate("author", ["username"])
       .sort({ createdAt: -1 })
-      .limit(20)
-  );
+      .limit(20);
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while fetching posts." });
+  }
 });
 
 app.get("/post/:id", async (req, res) => {
   const { id } = req.params;
-  const postDoc = await Post.findById(id).populate("author", ["username"]);
-  res.json(postDoc);
+  try {
+    const postDoc = await Post.findById(id).populate("author", ["username"]);
+    if (postDoc) {
+      res.json(postDoc);
+    } else {
+      res.status(404).json({ error: "Post not found." });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching the post." });
+  }
 });
 
 const port = process.env.API_PORT || 4000;
