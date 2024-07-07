@@ -169,7 +169,11 @@ const app = express();
 
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://writewise.onrender.com",
+];
 
 app.use(
   cors({
