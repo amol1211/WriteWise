@@ -5,8 +5,10 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:4000",
-        secure: false,
+        target: "https://writewise.onrender.com", // Update this to your deployed backend URL
+        secure: true, // Set to true for secure HTTPS connection
+        changeOrigin: true, // Needed for virtual hosted sites on Render
+        rewrite: (path) => path.replace(/^\/api/, ""), // Rewrite path if necessary
       },
     },
   },

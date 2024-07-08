@@ -1,4 +1,5 @@
 import { useState } from "react";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -6,7 +7,7 @@ function RegisterPage() {
 
   async function register(evt) {
     evt.preventDefault();
-    const response = await fetch("http://localhost:4000/register", {
+    const response = await fetch(`${API_URL}/register`, {
       method: "POST",
       body: JSON.stringify({ username, password }),
       headers: { "Content-Type": "application/json" },
