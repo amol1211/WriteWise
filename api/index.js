@@ -255,7 +255,8 @@ app.post("/post", uploadMiddleware.single("file"), async (req, res) => {
       title,
       summary,
       content,
-      cover: newPath,
+      /* cover: newPath, */
+      cover: `/uploads/${path.split("/").pop()}.${ext}`, // Correct path
       author: info.id,
     });
     res.json(postDoc);
@@ -287,7 +288,9 @@ app.put("/post", uploadMiddleware.single("file"), async (req, res) => {
     postDoc.title = title;
     postDoc.summary = summary;
     postDoc.content = content;
-    postDoc.cover = newPath ? newPath : postDoc.cover;
+    postDoc.cover = newPath
+      ? `/uploads/${newPath.split("/").pop()}` /* newPath */
+      : postDoc.cover;
 
     await postDoc.save();
     res.json(postDoc);
