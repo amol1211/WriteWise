@@ -8,7 +8,7 @@ function Post({ _id, title, summary, content, cover, createdAt, author }) {
       <div className="image">
         <Link to={`/post/${_id}`}>
           {/* <img src={`${API_URL}/post` + cover} /> */}
-          <img src={`${API_URL}/post${cover}`} alt={title} />
+          <img src={`${API_URL}/post/${cover}`} alt={title} />
         </Link>
       </div>
       <div className="texts">
