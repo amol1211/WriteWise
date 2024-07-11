@@ -247,6 +247,8 @@ app.post("/post", uploadMiddleware.single("file"), async (req, res) => {
   const newPath = path + "." + ext;
   fs.renameSync(path, newPath);
 
+  console.log(`New image path: /uploads/${path.split("/").pop()}.${ext}`); // Add this line
+
   const { token } = req.cookies;
   jwt.verify(token, process.env.JWT_SECRET, {}, async (err, info) => {
     if (err) throw err;
