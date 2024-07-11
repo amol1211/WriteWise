@@ -247,8 +247,6 @@ app.post("/post", uploadMiddleware.single("file"), async (req, res) => {
   const newPath = path + "." + ext;
   fs.renameSync(path, newPath);
 
-  console.log(`New image path: /uploads/${path.split("/").pop()}.${ext}`); // Add this line
-
   const { token } = req.cookies;
   jwt.verify(token, process.env.JWT_SECRET, {}, async (err, info) => {
     if (err) throw err;
@@ -257,8 +255,7 @@ app.post("/post", uploadMiddleware.single("file"), async (req, res) => {
       title,
       summary,
       content,
-      /* cover: newPath, */
-      cover: `/uploads/${path.split("/").pop()}.${ext}`, // Correct path
+      cover: `/uploads/${path.split("\\").pop()}.${ext}`, // Use forward slashes and handle Windows path
       author: info.id,
     });
     res.json(postDoc);
@@ -291,7 +288,7 @@ app.put("/post", uploadMiddleware.single("file"), async (req, res) => {
     postDoc.summary = summary;
     postDoc.content = content;
     postDoc.cover = newPath
-      ? `/uploads/${newPath.split("/").pop()}` /* newPath */
+      ? `/uploads/${newPath.split("\\").pop()}` // Use forward slashes and handle Windows path
       : postDoc.cover;
 
     await postDoc.save();
