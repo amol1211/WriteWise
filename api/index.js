@@ -344,31 +344,25 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const fs = require("fs");
-const path = require("path");
+const path = require("path"); // Import the path module
 
 const app = express();
-
-const salt = bcrypt.genSaltSync(10);
-const secret = process.env.JWT_SECRET; // Using your environment variable for JWT secret
-
 const uploadMiddleware = multer({ dest: "uploads/" });
 
 app.use(cors({ credentials: true, origin: process.env.CLIENT_ORIGIN }));
 app.use(express.json());
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(express.static(path.join(__dirname, "dist"))); // Serve static files from the dist directory
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(process.env.MONGO_URI);
 
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
   try {
     const userDoc = await User.create({
       username,
-      password: bcrypt.hashSync(password, salt),
+      password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
     });
     res.json(userDoc);
   } catch (e) {
@@ -382,14 +376,18 @@ app.post("/login", async (req, res) => {
   const userDoc = await User.findOne({ username });
   const passOk = bcrypt.compareSync(password, userDoc.password);
   if (passOk) {
-    // logged in
-    jwt.sign({ username, id: userDoc._id }, secret, {}, (err, token) => {
-      if (err) throw err;
-      res.cookie("token", token).json({
-        id: userDoc._id,
-        username,
-      });
-    });
+    jwt.sign(
+      { username, id: userDoc._id },
+      process.env.JWT_SECRET,
+      {},
+      (err, token) => {
+        if (err) throw err;
+        res.cookie("token", token).json({
+          id: userDoc._id,
+          username,
+        });
+      }
+    );
   } else {
     res.status(400).json("wrong credentials");
   }
@@ -397,7 +395,7 @@ app.post("/login", async (req, res) => {
 
 app.get("/profile", (req, res) => {
   const { token } = req.cookies;
-  jwt.verify(token, secret, {}, (err, info) => {
+  jwt.verify(token, process.env.JWT_SECRET, {}, (err, info) => {
     if (err) throw err;
     res.json(info);
   });
@@ -415,14 +413,14 @@ app.post("/post", uploadMiddleware.single("file"), async (req, res) => {
   fs.renameSync(path, newPath);
 
   const { token } = req.cookies;
-  jwt.verify(token, secret, {}, async (err, info) => {
+  jwt.verify(token, process.env.JWT_SECRET, {}, async (err, info) => {
     if (err) throw err;
     const { title, summary, content } = req.body;
     const postDoc = await Post.create({
       title,
       summary,
       content,
-      cover: `/uploads/${path.split("\\").pop()}.${ext}`, // Use forward slashes and handle Windows path
+      cover: `/uploads/${path.split("\\").pop()}.${ext}`,
       author: info.id,
     });
     res.json(postDoc);
@@ -440,7 +438,7 @@ app.put("/post", uploadMiddleware.single("file"), async (req, res) => {
   }
 
   const { token } = req.cookies;
-  jwt.verify(token, secret, {}, async (err, info) => {
+  jwt.verify(token, process.env.JWT_SECRET, {}, async (err, info) => {
     if (err) throw err;
     const { id, title, summary, content } = req.body;
     const postDoc = await Post.findById(id);
@@ -474,19 +472,14 @@ app.get("/post/:id", async (req, res) => {
   res.json(postDoc);
 });
 
-// New endpoint to list files in the uploads directory
-app.get("/list-uploads", (req, res) => {
-  const directoryPath = path.join(__dirname, "uploads");
-  fs.readdir(directoryPath, (err, files) => {
-    if (err) {
-      return res.status(500).send("Unable to scan files");
-    }
-    res.json(files);
-  });
+// Catch-all route to serve index.html for any request that isn't handled by the API
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "dist", "index.html"));
 });
 
-app.listen(process.env.API_PORT, () => {
-  console.log(`Server is running on port ${process.env.API_PORT}`);
+// Start server
+app.listen(process.env.API_PORT || 4000, () => {
+  console.log(`Server is running on port ${process.env.API_PORT || 4000}`);
 });
 
 module.exports = app;
