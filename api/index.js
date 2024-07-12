@@ -353,7 +353,7 @@ app.use(cors({ credentials: true, origin: process.env.CLIENT_ORIGIN }));
 app.use(express.json());
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use(express.static(path.join(__dirname, "dist"))); // Serve static files from the dist directory
+app.use(express.static(path.join(__dirname, "../dist"))); // Serve static files from the dist directory
 
 mongoose.connect(process.env.MONGO_URI);
 
@@ -474,7 +474,7 @@ app.get("/post/:id", async (req, res) => {
 
 // Catch-all route to serve index.html for any request that isn't handled by the API
 app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "dist", "index.html"));
+  res.sendFile(path.resolve(__dirname, "../dist", "index.html")); // Adjust path to where index.html is located
 });
 
 // Start server
