@@ -4,11 +4,23 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   server: {
     proxy: {
-      "/api": {
-        target: "https://writewise.onrender.com", // Update this to your deployed backend URL
-        secure: true, // Set to true for secure HTTPS connection
-        changeOrigin: true, // Needed for virtual hosted sites on Render
-        rewrite: (path) => path.replace(/^\/api/, ""), // Rewrite path if necessary
+      "/post": {
+        target: "https://writewise.onrender.com",
+        secure: true,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/post/, ""),
+      },
+      "/profile": {
+        target: "https://writewise.onrender.com",
+        secure: true,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/profile/, ""),
+      },
+      "/logout": {
+        target: "https://writewise.onrender.com",
+        secure: true,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/logout/, ""),
       },
     },
   },

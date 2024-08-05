@@ -19,7 +19,7 @@ function EditPost() {
         setSummary(postInfo.summary);
       });
     });
-  }, []);
+  }, [id]);
 
   async function updatePost(evt) {
     evt.preventDefault();

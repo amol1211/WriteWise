@@ -9,13 +9,14 @@ function PostPage() {
   const [postInfo, setPostInfo] = useState(null);
   const { userInfo } = useContext(UserContext);
   const { id } = useParams();
+
   useEffect(() => {
     fetch(`${API_URL}/post/${id}`).then((response) => {
       response.json().then((postInfo) => {
         setPostInfo(postInfo);
       });
     });
-  }, []);
+  }, [id]);
 
   if (!postInfo) return "";
 
@@ -46,7 +47,7 @@ function PostPage() {
         </div>
       )}
       <div className="image">
-        <img src={`${API_URL}/${postInfo.cover}`} />
+        <img src={`${API_URL}/${postInfo.cover}`} alt={postInfo.title} />
       </div>
       <div
         className="content"
