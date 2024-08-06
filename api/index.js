@@ -293,7 +293,7 @@ app.put("/api/post", uploadMiddleware.single("file"), async (req, res) => {
     postDoc.summary = summary;
     postDoc.content = content;
     postDoc.cover = newPath
-      ? `/uploads/${newPath.split("/").pop()}` // Use forward slashes and handle Windows path
+      ? `/uploads/${newPath.split("/").pop()}`
       : postDoc.cover;
 
     await postDoc.save();
